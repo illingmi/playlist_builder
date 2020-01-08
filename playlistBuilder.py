@@ -1,5 +1,7 @@
 import requests
 import spotipy
+import os
+import re
 import sys
 import json
 import spotipy.util as util
@@ -54,12 +56,26 @@ def findSearchResults(array):
     print(searches)
     print(potentialSongs)
 
+# Find the best match
 test = ['The', 'King', 'And', 'Queen']
 findSearchResults(test)
 print(potentialSongs[0][0])
 #potentialSongs[0].find(searches[0])
 print(searches[0])
 
+# Test Removals
+print("Testing Removals!")
+test_removal = "My song (remove me)"
+re.sub(\"'(.*)'\", ' ', test_removal)
+print(test_removal)
+'''
+# Remove stuff from inside brackets in potential songs
+for list in potentialSongs:
+    for song in list:
+        re.sub(r" ?\([^)]+\)", "", song)
+'''
+
+print(potentialSongs)
 
 #results1 = spotify.search(q='track:The King')
 #print(results1)
@@ -81,8 +97,6 @@ none = results['tracks']['items'][9]['album']['name']
 test.append([name1, name2, name3, name4, name5, name6, name7, name8])
 #print("Hard Coded:")
 #print(test)
-
-
 
 '''
 def findClosestPlaylist():
