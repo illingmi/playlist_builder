@@ -23,80 +23,77 @@ spotify = spotipy.Spotify(auth=token)
 
 # Need a function that parses a string into an array
 description = "The King and Queen had 2 daughters. Their names were Olivia and Emerald"
-words = ['The', 'King', 'And', 'Queen', 'Had', '2', 'Daughters', 'Their', 'Names',
-          'Were', 'Olivia', 'And', 'Emerald']
+words = ['The', 'King', 'and', 'Queen', 'had', '2', 'daughters', 'Their', 'names',
+          'were', 'Olivia', 'and', 'Emerald']
 
 #print(json.dumps(name, sort_keys=True, indent=4))
-searches = []
-potentialSongs = []
+searches = [] # an array of search entries
+potentialSongs = [] # an array of lists of search results
 
-def findSearchResults(array):
+# generate 4 search entries
+def findSearches(fourWordsArray):
+    #searches = [] # should empty searches array everytime findSearches is called
     for i in range(4):
-        # if array of words is not empty --> need a different way to write this
-        #if array:
-        # Finds all the potential songs searches up to five words
+
+        # gets the first one word search
         if i == 0:
-            search = array[i]
-            prevSearch = search
-            searches.append(search)
-        else:
-            search = prevSearch + " " + array[i]
+            search = fourWordsArray[i]
             prevSearch = search
             searches.append(search)
 
-        # get search results
+        # finds two, three and four word searches by combining the words together
+        else:
+            search = prevSearch + " " + fourWordsArray[i]
+            prevSearch = search
+            searches.append(search)
+
+    #print(searches)
+
+# Finds the searchResults for 4 words at a time
+def findSearchResults(array):
+    fourWordsArray = array[:4]
+    findSearches(fourWordsArray)
+
+    for search in searches:
         temp = []
-        results = spotify.search(q='track:' + search, type='track')
-        index = len(results['tracks']['items'])
+        results = spotify.search(q='track:' + search, type='track') # do the search
+        index = len(results['tracks']['items']) # index = number of search results
+
+        # for search, add the name of the song into the temp array.
         for x in range(index):
             name = results['tracks']['items'][x]['album']['name']
             temp.append(name)
 
         potentialSongs.append(temp)
-    print(searches)
+
+    #print(searches)
+    print("Printing Potential Songs")
     print(potentialSongs)
 
-# Find the best match
-test = ['The', 'King', 'And', 'Queen']
-findSearchResults(test)
-print(potentialSongs[0][0])
-#potentialSongs[0].find(searches[0])
-print(searches[0])
+# Remove brackets from a list of songs
+def removeBrackets(songs):
+    i = 0
+    for song in songs:
+        split = song.split("(")
+        altered_song = split[0]
+        songs[i] = altered_song
+        i += 1
 
-# Test Removals
-print("Testing Removals!")
-test_removal = "My song (remove me)"
-re.sub(\"'(.*)'\", ' ', test_removal)
-print(test_removal)
-'''
-# Remove stuff from inside brackets in potential songs
-for list in potentialSongs:
-    for song in list:
-        re.sub(r" ?\([^)]+\)", "", song)
-'''
+# Remove brackets from all songs in potential songs list
+def removals(songsList):
+    for songs in potentialSongs:
+        i = 0
+        potentialSongs[i] = removeBrackets(songs)
+        i += 1
 
-print(potentialSongs)
+def main():
+    findSearchResults(words)
+    removals(potentialSongs)
+    print("Printing potential songs without brackets")
+    print(potentialSongs)
 
-#results1 = spotify.search(q='track:The King')
-#print(results1)
-test = []
+main()
 
-results = spotify.search(q='track:The King', type='track')
-#print(json.dumps(results, sort_keys=True, indent=4))
-
-name1 = results['tracks']['items'][0]['album']['name']
-name2 = results['tracks']['items'][1]['album']['name']
-name3 = results['tracks']['items'][2]['album']['name']
-name4 = results['tracks']['items'][3]['album']['name']
-name5 = results['tracks']['items'][4]['album']['name']
-name6 = results['tracks']['items'][5]['album']['name']
-name7 = results['tracks']['items'][6]['album']['name']
-name8 = results['tracks']['items'][7]['album']['name']
-none = results['tracks']['items'][9]['album']['name']
-
-test.append([name1, name2, name3, name4, name5, name6, name7, name8])
-#print("Hard Coded:")
-#print(test)
 
 '''
 def findClosestPlaylist():
