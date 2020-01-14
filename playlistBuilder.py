@@ -50,6 +50,7 @@ def findSearches(fourWordsArray):
     #print(searches)
 
 # Finds the searchResults for 4 words at a time
+# Calls findSearches
 def findSearchResults(array):
     fourWordsArray = array[:4]
     findSearches(fourWordsArray)
@@ -67,11 +68,11 @@ def findSearchResults(array):
         potentialSongs.append(temp)
 
     #print(searches)
-    print("Printing Potential Songs")
-    print(potentialSongs)
+    #print("Printing Potential Songs")
+    #print(potentialSongs)
 
 # Remove brackets from a list of songs
-def removeBrackets(songs):
+def removeFromList(songs):
     i = 0
     for song in songs:
         split = song.split("(")
@@ -80,16 +81,20 @@ def removeBrackets(songs):
         i += 1
 
 # Remove brackets from all songs in potential songs list
-def removals(songsList):
-    for songs in potentialSongs:
+def removeFromAll(songsList):
+    for songs in songsList:
         i = 0
-        potentialSongs[i] = removeBrackets(songs)
+        potentialSongs[i] = removeFromList(songs)
         i += 1
 
 def main():
     findSearchResults(words)
-    removals(potentialSongs)
+    print()
+    print(potentialSongs)
+    removeFromAll(potentialSongs)
+    print()
     print("Printing potential songs without brackets")
+    print()
     print(potentialSongs)
 
 main()
