@@ -127,33 +127,3 @@ def main():
     #findBestTitle()
 
 main()
-
-'''
-term = searches[0]
-print(term)
-findBestTitle(term, index)
-
-DON'T THINK I NEED THESE ANYMORE!
-# Remove brackets from a list of songs
-def removeFromList(songs):
-    i = 0
-    for song in songs:
-        split = song.split("(")
-        altered_song = split[0]
-        songs[i] = altered_song
-        i += 1
-
-# Remove brackets from all songs in potential songs list
-def removeFromAll(songsList):
-    for songs in songsList:
-        removeFromList(songs)
-
-
-# splits searches and puts results into searchesSplit array
-def splitSearches():
-    i = 0
-    for search in searches:
-        temp = search.split()
-        searchesSplit.append(temp)
-        i += 1
-'''
