@@ -28,7 +28,9 @@ words = ['The', 'King', 'and', 'Queen', 'had', '2', 'daughters', 'Their', 'names
 
 #print(json.dumps(name, sort_keys=True, indent=4))
 searches = [] # an array of search entries
-potentialSongs = [] # an array of lists of search results
+searchesSplit = [] # an array of array where each search is an array of single words
+                   # ex. [["one"], ["two", "words"]]
+potentialSongs = [] # an array of lists of potential song titles
 
 # generate 4 search entries
 def findSearches(fourWordsArray):
@@ -47,7 +49,8 @@ def findSearches(fourWordsArray):
             prevSearch = search
             searches.append(search)
 
-    #print(searches)
+    print(searches)
+    #return searches
 
 # Finds the searchResults for 4 words at a time
 # Calls findSearches
@@ -67,9 +70,8 @@ def findSearchResults(array):
 
         potentialSongs.append(temp)
 
-    #print(searches)
-    #print("Printing Potential Songs")
-    #print(potentialSongs)
+    print(searches)
+    #return searches
 
 # Remove brackets from a list of songs
 def removeFromList(songs):
@@ -83,23 +85,55 @@ def removeFromList(songs):
 # Remove brackets from all songs in potential songs list
 def removeFromAll(songsList):
     for songs in songsList:
-        i = 0
-        potentialSongs[i] = removeFromList(songs)
+        removeFromList(songs)
+
+# splits searches and puts results into searchesSplit array
+def splitSearches():
+    i = 0
+    for search in searches:
+        temp = search.split()
+        searchesSplit.append(temp)
         i += 1
+
+# Find the closest title from one list
+def findBestTitle():
+    temp = []
+    #currentSongs = potentialSongs[index] # the current song list that we're working with
+    i = 0
+    for search in searchesSplit:
+        term = search[i]
+        print(term)
+        length = len(term)
+        if length == 1: # if the term has only one word
+            print("One Term")
+        else:
+            print("Many Terms")
+        i += 1
+    #for song in currentSongs:
+    #    if term in currentSongs[i]:
 
 def main():
     findSearchResults(words)
-    print()
-    print(potentialSongs)
+    #print()
+    #print("Printing Potential Songs!")
+    #print()
+    #print(potentialSongs)
     removeFromAll(potentialSongs)
-    print()
-    print("Printing potential songs without brackets")
-    print()
-    print(potentialSongs)
+    splitSearches()
+    print(searchesSplit)
+    findBestTitle()
+    #print()
+    #print("Printing potential songs without brackets")
+    #print()
+    #print(potentialSongs)
 
 main()
 
-
+'''
+term = searches[0]
+print(term)
+findBestTitle(term, index)
+'''
 '''
 def findClosestPlaylist():
     # picks the playlist that most accurately matches the description
