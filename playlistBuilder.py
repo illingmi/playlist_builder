@@ -22,13 +22,12 @@ except:
 spotify = spotipy.Spotify(auth=token)
 
 #print(json.dumps(name, sort_keys=True, indent=4))
-description = "The King and Queen had 2 daughters. Their names were Olivia and Emerald"
+#description = "In the morning we can make waffles and bagels"
+#description = "Today I bought groceries and made apple pie"
+description = "I want you to fuck me so bad baby"
 #words = ['The', 'King', 'and', 'Queen', 'had', '2', 'daughters', 'Their', 'names',
           #'were', 'Olivia', 'and', 'Emerald']
 
-#searches = []       # an array of search entries
-#songs = []          # an array of songs objects
-#exactMatches = []   # an array of titles that match exactly
 
 # (string) title:       song title (does not include any words included inside brackets ())
 # (string) search:      the corresponding search keywords that found this song title
@@ -40,7 +39,7 @@ class Song(object):
     search = ""
     searchSplit = []
     rank = 0
-    songId = "no song id"
+    songId = ''
 
 # splits a search
 def splitSearch(search):
@@ -62,22 +61,27 @@ def getSearchToCompare(songs):
 # ex: ['This', 'This is', 'This is my, 'This is my sentence']
 def findSearches(words):
     searches = []
-    #print("[3] findSearches")
-    for i in range(4):
+    i = 0
+    fourWords = words[:4]
+    print(fourWords)
+    print("[3] findSearches")
+    for word in fourWords: # - this gets better searches and titles but I dont know what it's doing
 
         # gets the first one word search
         if i == 0:
-            search = words[i]
+            search = fourWords[i]
             prevSearch = search
             searches.append(search)
 
         # finds two, three and four word searches by combining the words together
         else:
-            search = prevSearch + " " + words[i]
+            search = prevSearch + " " + fourWords[i]
             prevSearch = search
             searches.append(search)
 
-    #print(searches)
+        i += 1
+
+    print("Printing searches", searches)
     return searches
 
 # Returns an array of all the songs that were generated from all of the four possible searches
@@ -95,16 +99,19 @@ def findSongs(searches):
         # for each song from the search, create a song, an add the corresponding search to the array
         for x in range(index):
             song = Song()
-            name = results['tracks']['items'][x]['album']['name']
+            name = results['tracks']['items'][x]['name']
             song.title = removeBrackets(name)
             song.search = search
             song.searchSplit = searchSplit
-            # song.songId = ...
+            song.songId = results['tracks']['items'][x]['id']
             songs.append(song)
 
+    #print(json.dumps(getId, sort_keys=True, indent=4))
+    #song.searchSplit, song.rank, song.songId
 
-    #for song in songs:
-        #print(song.title, "Search: ", song.search, "Search Split: ", song.searchSplit, song.rank)
+    for song in songs:
+        print(song.title, song.search)
+
     return songs
 
 # find the songs that match exactly
@@ -120,11 +127,13 @@ def findExactMatches(songs):
         search = song.search
         sLength = len(search.split())
 
-        if search in title and tLength == sLength:
+        #and tLength == sLength
+        # ignore upper/lowercase
+        if re.search(search, title, re.IGNORECASE) and tLength == sLength:
             exactMatches.append(song)
 
     for song in exactMatches:
-        print(song.title, "Search: ", song.search, "Search Split: ", song.searchSplit)
+        print(song.title, song.searchSplit)
     return exactMatches
 
 # Ranks all the songs and returns the songs with the highest rank
@@ -137,15 +146,20 @@ def findHighestRanked(songs):
         # FUTURE IDEA: if (searcu)word is not a stop word (in a list of stopwords),
         #              AND is in the song's title, increase song's rank by 2 pts, not 1
         for word in searchToCompare:
-            if word in song.title:
+            if re.search(word, song.title, re.IGNORECASE):
                 song.rank += 1
             if song.rank > highestRank:
                 highestRank = song.rank
+
+    print("Songs Ranked:")
+    for song in songs:
+        print(song.title, song.searchSplit, song.rank)
 
     for song in songs:
         if song.rank == highestRank:
             highestRankedSongs.append(song)
 
+    print("Highest Ranked Songs:")
     for song in highestRankedSongs:
         print(song.title, "Search: ", song.search, "Search Split: ", song.searchSplit, song.rank)
 
@@ -229,45 +243,23 @@ def main():
     finalSongs = findAllSongs(words)
     addSongsToPlaylist(finalSongs)
 
+    results = spotify.search(q='track:' + 'I want you', type='track') # do the search
+    index = len(results['tracks']['items'])
 
-    '''
-    for song in songs:
-        print(song.title, song.rank, song.search)
-    finalSong = findBestTitle()
-    for song in exactMatches:
-        print(song.title, song.search)
+    for x in range(index):
+        song = Song()
+        name = results['tracks']['items'][x]['name']
+        song.title = removeBrackets(name)
+        #song.search = search
+        #song.searchSplit = searchSplit
+        #song.songId = results['tracks']['items'][x]['id']
+        print(song.title)
 
-    print("Add ", finalSong.title, " to the playlist!")
-    '''
 
-        #print("Title: ", song.title, "Search: ", song.search, "Search Split: ", song.searchSplit, song.rank)
-    #findBestTitle()
+
+    #print(json.dumps(getId, sort_keys=True, indent=4))
+
+
+    #print("Title: ", song.title, "Search: ", song.search, "Search Split: ", song.searchSplit, song.rank)
 
 main()
-
-'''
-temp = []
-#currentSongs = potentialSongs[index] # the current song list that we're working with
-i = 0
-for search in searchesSplit:
-    #term = search
-    length = len(search)
-    print(length)
-    for word in search:
-        print(word)
-
-    if length == 1: # if the term has only one word
-        print("One Term")
-    else:
-        print("Many Terms")
-
-    i += 1
-
-    # The song that will be added to the playlist. NEEDS some way to keep track of exactly which song this was
-    # (string) title:       best song title (does not include any words included inside brackets ())
-    # (array) searchSplit:  the corresponding search keywords parsed into an array of individual words
-    class BestSong(object):
-        title = ""
-        searchSplit = []
-
-'''
