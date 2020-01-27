@@ -25,12 +25,15 @@ spotify = spotipy.Spotify(auth=token)
 sw = stopwords.words("english")
 
 #print(json.dumps(name, sort_keys=True, indent=4))
-description1 = "In the morning we can make waffles and bagels"
-description2 = "Today I bought groceries and made apple pie"
-description3 = "I want you to fuck me so bad baby"
-description4 = "Michelle was born in Boston. She lived in California and now she goes to school in British Columbia"
 
-f = open("potential_playlists.txt", "w+")
+description1 = "Not me but my brother is a criminal defense attorney. He worked as a contracted public defender for a few years after starting his own business to get some guaranteed income while building his client base"
+description2 = "During my days of insurance defense, I spent one lovely afternoon bickering with counsel for a co-defendant over who would be responsible for paying the $5000 that was keeping us from settling"
+description3 = "Nothing sexual, sir. Just hard drugs and devil worship"
+description4 = "Firm calls me in a panic, they need to redo the work on a tight deadline."
+description5 = "Mom was a raging alcoholic that would bring random guys home many nights from the bar while the dad was working"
+description6 = "On an unrelated note please continue to boil your drinking water due to pollution concerns"
+
+f = open("potential_playlists.txt", "a+")
 
 # (string) title:       song title (does not include any words included inside brackets ())
 # (string) search:      the corresponding search keywords that found this song title
@@ -78,7 +81,7 @@ def findSearches(words):
 
         i += 1
 
-    print("Printing searches", searches)
+    #print("Printing searches", searches)
     return searches
 
 # Returns an array of all the songs that were generated from all of the four possible searches
@@ -135,11 +138,14 @@ def findExactMatches(songs):
         tLength = len(title.split())
 
         search = song.search
-        sLength = len(search.split())
-
+        seperateWords = search.split()
         # ignore upper/lowercase
-        if re.search(search, title, re.IGNORECASE) and tLength == sLength:
-            exactMatches.append(song)
+
+        if re.search(search, title, re.IGNORECASE):
+            if title == search:
+                exactMatches.append(song)
+
+        #print("Song title: ", title, "Tlength: ", tLength,"Associated Search: ", search, "searchLength: ", sLength)
 
     print("Printing Exact Matches: ")
     for song in exactMatches:
@@ -208,27 +214,46 @@ def fixSongSearches(highestRanked, newSongs):
 
     return newSongs
 
-'''
-# remove stop words and try again
-elif firstTime:
-    search = highestRanked[0].searchSplit
+# find the best song again
+def findBestSong2(newSongs):
+    exactMatches = findExactMatches(newSongs)
+    highestRanked = findHighestRanked(newSongs)
 
-    newSearch = removeStopWords(search)
-    #newSearch = newSearch[0]
-    print("Printing new search:")
-    print(newSearch)
-    newSongs = findSongs(newSearch)
-    newSongs = fixSongSearches(highestRanked, newSongs)
-    print("Printing new songs:")
-    for song in newSongs:
-        print(song.title)
+    if exactMatches:
+        bestSongs = exactMatches
+        bestSong = chooseBestSong(bestSongs)
 
-    firstTime = not firstTime
-    findBestSong(newSongs)
+    else:
+        bestSongs = highestRanked
+        bestSong = bestSongs[0]
+
+    return bestSong
+
 '''
+    # remove stop words and try again
+    # find the highest ranked search keyword and remove all the stop words from this highestRanked searches
+    # find new songs using the new search
+    elif firstTime:
+        search = highestRanked[0].searchSplit
+        newSearch = removeStopWords(search)
+
+        newSongs = findSongs(newSearch)
+        #indexToRemove = getLastWordIndex()
+
+        # this is the correct search result that the song should be associated
+
+        newSongs = fixSongSearches(highestRanked, newSongs)
+
+        #firstTime = not firstTime --> not sure if I need this
+        bestSong = findBestSong2(newSongs)
+'''
+
 # return the best song that mostly closely matches the search keywords.
-def findBestSong(songs):
+# TODO: FIX - shouldn't need findBestSong2 if I'm flipping the firstTime Variable correctly
+def findBestSong(words, songs):
     #print("[5] findBestSong")
+    currWords = words[:4] # ["I" "love" "defense" "Lawyers"]
+    print("Printing the current 4 words", currWords)
     exactMatches = findExactMatches(songs)
     highestRanked = findHighestRanked(songs)
     firstTime = True
@@ -237,33 +262,23 @@ def findBestSong(songs):
     if exactMatches:
         bestSongs = exactMatches
         bestSong = chooseBestSong(bestSongs)
+        return bestSong
 
-    # remove stop words and try again
-    elif firstTime:
-        search = highestRanked[0].searchSplit
+    elif currWords:
+         print("Got into elif")
+         currWords.pop(0) # ["love", "defense", "lawyers"]
+         newSearch = currWords
+         bestSong = findBestSong(currWords, songs)
+         return bestSong
 
-        newSearch = removeStopWords(search)
-        #newSearch = newSearch[0]
-        print("Printing new search:")
-        print(newSearch)
-        newSongs = findSongs(newSearch)
-        print("Printing new songs:")
-        for song in newSongs:
-            print(song.title)
-        newSongs = fixSongSearches(highestRanked, newSongs)
-        print("Printing new songs fixed:")
-        for song in newSongs:
-            print(song.title)
-
-        firstTime = not firstTime
-        findBestSong(newSongs)
 
     else:
         bestSongs = highestRanked
         bestSong = bestSongs[0]
+        return bestSong
 
-    #bestSong = chooseBestSong(bestSongs)
-    return bestSong
+#bestSong = chooseBestSong(bestSongs)
+
 
 # Pop the same number of words as the search result that produced the finalSong
 def popWords(bestSong, words):
@@ -289,14 +304,16 @@ def findAllSongs(words):
     while words:
         searches = findSearches(words)
         songs = findSongs(searches)
-        bestSong = findBestSong(songs)
+        bestSong = findBestSong(words, songs)
         finalSongs.append(bestSong)
         popWords(bestSong, words)
+        '''
         print("Print words after popped: ", words)
         print()
         for song in finalSongs:
             print(song.title)
         print()
+        '''
 
     return finalSongs
 
@@ -318,7 +335,6 @@ def writeSongsToFile(description, finalSongs):
     f.write("\n")
 
 def runProgram(description):
-    print(sw)
     words = description.split() # create an array of single words
     #print("[1] Main: Split Description")
     # find all the titles and song ideas of all the songs that should be added into the playlist
@@ -326,13 +342,14 @@ def runProgram(description):
 
     #writeSongsToFile(description, finalSongs)
     addSongsToPlaylist(finalSongs)
+    print("Printing Final Songs! ")
+    for song in finalSongs:
+        print(song.title)
 
     #print(json.dumps(results, sort_keys=True, indent=4))
 
 #runProgram(description1)
-#runProgram(description2)
-#runProgram(description3)
-runProgram(description4)
+
 
 '''
 test = ['born']
