@@ -108,24 +108,7 @@ def findSongs(searches):
 
     return songs
 
-# finds songs when there is only one search
-def findSongs2(search):
-    songs = []
-    results = spotify.search(q='track:' + search, limit=50, type='track') # do the search
-    index = len(results['tracks']['items']) # index = number of search results
-    searchSplit = splitSearch(search)
 
-    # for each song from the search, create a song, an add the corresponding search to the array
-    for x in range(index):
-        song = Song()
-        name = results['tracks']['items'][x]['name']
-        song.title = removeBrackets(name)
-        song.search = search
-        song.searchSplit = searchSplit
-        song.songId = results['tracks']['items'][x]['id']
-        songs.append(song)
-
-    return songs
 
 # find the songs that match exactly
 # Stores matches in global 'exactMatches' array
@@ -135,14 +118,22 @@ def findExactMatches(songs):
 
     for song in songs:
         title = song.title
-        tLength = len(title.split())
+        titleWords = title.split()
+        numTitleChars = 0
+        for word in titleWords:
+            for c in word:
+                numTitleChars +=1
 
         search = song.search
-        seperateWords = search.split()
-        # ignore upper/lowercase
+        searchWords = search.split()
+        numSearchChars = 0
+        for word in searchWords:
+            for c in word:
+                numSearchChars +=1
 
+        # ignore upper/lowercase
         if re.search(search, title, re.IGNORECASE):
-            if title == search:
+            if numSearchChars == numTitleChars:
                 exactMatches.append(song)
 
         #print("Song title: ", title, "Tlength: ", tLength,"Associated Search: ", search, "searchLength: ", sLength)
@@ -185,9 +176,11 @@ def findHighestRanked(songs):
         if song.rank == highestRank:
             highestRankedSongs.append(song)
 
+    '''
     print("Highest Ranked Songs:")
     for song in highestRankedSongs:
         print(song.title, song.searchSplit, song.rank)
+    '''
 
     return highestRankedSongs
 
@@ -199,6 +192,7 @@ def removeStopWords(search):
             search.pop(i)
         i += 1
     return search
+
 
 # Used when stopwords have been removed from the search. For each song that
 # was found with a search that does not contain stopwords, it makes sure that
@@ -229,24 +223,11 @@ def findBestSong2(newSongs):
 
     return bestSong
 
-'''
-    # remove stop words and try again
-    # find the highest ranked search keyword and remove all the stop words from this highestRanked searches
-    # find new songs using the new search
-    elif firstTime:
-        search = highestRanked[0].searchSplit
-        newSearch = removeStopWords(search)
-
-        newSongs = findSongs(newSearch)
-        #indexToRemove = getLastWordIndex()
-
-        # this is the correct search result that the song should be associated
-
-        newSongs = fixSongSearches(highestRanked, newSongs)
-
-        #firstTime = not firstTime --> not sure if I need this
-        bestSong = findBestSong2(newSongs)
-'''
+def findEverythingAgain(currWords):
+    newSearches = findSearches(currWords)
+    newSongs = findSongs(newSearches)
+    bestNewSongs = findExactMatches(newSongs)
+    return bestNewSongs
 
 # return the best song that mostly closely matches the search keywords.
 # TODO: FIX - shouldn't need findBestSong2 if I'm flipping the firstTime Variable correctly
@@ -256,7 +237,7 @@ def findBestSong(words, songs):
     print("Printing the current 4 words", currWords)
     exactMatches = findExactMatches(songs)
     highestRanked = findHighestRanked(songs)
-    firstTime = True
+    noMatch = True
     # if there are any song titles that are exact matches, choose the best song from exactMatches,
     # otherwise choose best song from highestRanked
     if exactMatches:
@@ -264,12 +245,17 @@ def findBestSong(words, songs):
         bestSong = chooseBestSong(bestSongs)
         return bestSong
 
-    elif currWords:
+    # if noMatch has been found yet
+    elif noMatch:
+         print("Inside findBestSong elif")
          print("Got into elif")
-         currWords.pop(0) # ["love", "defense", "lawyers"]
-         newSearch = currWords
-         bestSong = findBestSong(currWords, songs)
-         return bestSong
+         currWords.pop(0)
+         bestNewSongs = findEverythingAgain(currWords)
+         if bestNewSongs:
+             bestSong = chooseBestSong(bestNewSongs)
+             noMatch = False
+             return bestSong
+
 
 
     else:
@@ -349,39 +335,3 @@ def runProgram(description):
     #print(json.dumps(results, sort_keys=True, indent=4))
 
 #runProgram(description1)
-
-
-'''
-test = ['born']
-testSongs = findSongs(test)
-for song in testSongs:
-    print(song.title)
-'''
-
-'''
-    print("Search results for [to fuck me]: ")
-    print()
-    for x in range(index):
-        song = Song()
-        name = results['tracks']['items'][x]['name']
-        print(json.dumps(name, sort_keys=True, indent=4))
-
-
-    results = spotify.search(q='track:' + 'two', limit = 50, type='track') # do the search
-    index = len(results['tracks']['items'])
-
-    print()
-    print("Search results for [2]: ")
-    print()
-    for x in range(index):
-        song = Song()
-        name = results['tracks']['items'][x]['name']
-        print(json.dumps(name, sort_keys=True, indent=4))
-
-# get the four word search (to compare and rank the songs)
-def getSearchToCompare(song):
-    length = len(song.searchSplit)
-    song = songs[length - 1]
-    return song.searchSplit
-
-'''
